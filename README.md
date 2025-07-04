@@ -1,5 +1,3 @@
-# Gesture-Volume-Control
-
 # 🖐️ Gesture-Based Volume Control using OpenCV and MediaPipe
 
 This project is a Python-based tool that lets you control your system volume **using hand gestures** via a webcam. It tracks the distance between your thumb and index finger and adjusts the volume accordingly.
@@ -37,7 +35,7 @@ To run this project, make sure you have the following Python libraries installed
 
 ### 📄 `requirements.txt`
 
-```txt
+```
 opencv-python
 mediapipe
 pycaw
@@ -45,18 +43,22 @@ comtypes
 numpy
 ```
 
-
 You can install them using:
 
+```bash
 pip install -r requirements.txt
+```
+
+---
 
 ## 🗂️ Project Structure
 
-├── HandTrackingModule.py # Custom hand tracking module (MediaPipe-based)
-├── volumeControl.py # Main script to run the volume control
-├── requirements.txt # List of required libraries
-├── README.md # This documentation
-
+```
+├── HandTrackingModule.py       # Custom hand tracking module (MediaPipe-based)
+├── volumeControl.py            # Main script to run the volume control
+├── requirements.txt            # List of required libraries
+├── README.md                   # This documentation
+```
 
 ---
 
@@ -68,7 +70,34 @@ pip install -r requirements.txt
 
    ```bash
    pip install -r requirements.txt
+   ```
 
 4. Run the script:
+
    ```bash
-     python volumeControl.py
+   python volumeControl.py
+   ```
+
+> 📌 Tip: If your webcam is not working, try changing `cv2.VideoCapture(1)` to `cv2.VideoCapture(0)` in the code.
+
+---
+
+## 🖥️ Platform Support
+
+- ✅ Windows (required for `pycaw`)
+- ❌ Not supported on Linux/macOS (due to Windows-specific volume control library)
+
+---
+
+## 🙌 Acknowledgements
+
+- [MediaPipe](https://google.github.io/mediapipe/) by Google for robust hand tracking
+- [OpenCV](https://opencv.org/) for computer vision tools
+- [pycaw](https://github.com/AndreMiras/pycaw) for Windows audio control
+
+---
+
+## 👨‍💻 Author
+
+Made with ❤️ by **[Harsh Dixit]**  
+Built as an extension of tutorial concepts, enhanced with a **custom-built HandTrackingModule** for modularity and reusability.
