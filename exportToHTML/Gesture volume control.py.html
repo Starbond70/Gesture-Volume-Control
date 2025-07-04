@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>Gesture volume control.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Gesture volume control.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">cv2</span>
+<span class="s0">import </span><span class="s1">time</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">HandTrackingModule </span><span class="s0">as </span><span class="s1">htm</span>
+<span class="s0">import </span><span class="s1">math</span>
+<span class="s0">from </span><span class="s1">ctypes </span><span class="s0">import </span><span class="s1">cast</span><span class="s2">, </span><span class="s1">POINTER</span>
+<span class="s0">from </span><span class="s1">comtypes </span><span class="s0">import </span><span class="s1">CLSCTX_ALL</span>
+<span class="s0">from </span><span class="s1">pycaw</span><span class="s2">.</span><span class="s1">pycaw </span><span class="s0">import </span><span class="s1">AudioUtilities</span><span class="s2">, </span><span class="s1">IAudioEndpointVolume</span>
+
+<span class="s3">################################</span>
+<span class="s1">wCam</span><span class="s2">, </span><span class="s1">hCam </span><span class="s2">= </span><span class="s4">640</span><span class="s2">, </span><span class="s4">480</span>
+<span class="s3">################################</span>
+
+<span class="s1">cap </span><span class="s2">= </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">VideoCapture</span><span class="s2">(</span><span class="s4">1</span><span class="s2">)</span>
+<span class="s1">cap</span><span class="s2">.</span><span class="s1">set</span><span class="s2">(</span><span class="s4">3</span><span class="s2">, </span><span class="s1">wCam</span><span class="s2">)</span>
+<span class="s1">cap</span><span class="s2">.</span><span class="s1">set</span><span class="s2">(</span><span class="s4">4</span><span class="s2">, </span><span class="s1">hCam</span><span class="s2">)</span>
+<span class="s1">pTime </span><span class="s2">= </span><span class="s4">0</span>
+
+<span class="s1">detector </span><span class="s2">= </span><span class="s1">htm</span><span class="s2">.</span><span class="s1">HandDetector</span><span class="s2">(</span><span class="s1">detectionConfidence</span><span class="s2">=</span><span class="s4">0.7</span><span class="s2">)</span>
+
+<span class="s1">devices </span><span class="s2">= </span><span class="s1">AudioUtilities</span><span class="s2">.</span><span class="s1">GetSpeakers</span><span class="s2">()</span>
+<span class="s1">interface </span><span class="s2">= </span><span class="s1">devices</span><span class="s2">.</span><span class="s1">Activate</span><span class="s2">(</span>
+    <span class="s1">IAudioEndpointVolume</span><span class="s2">.</span><span class="s1">_iid_</span><span class="s2">, </span><span class="s1">CLSCTX_ALL</span><span class="s2">, </span><span class="s0">None</span><span class="s2">)</span>
+<span class="s1">volume </span><span class="s2">= </span><span class="s1">cast</span><span class="s2">(</span><span class="s1">interface</span><span class="s2">, </span><span class="s1">POINTER</span><span class="s2">(</span><span class="s1">IAudioEndpointVolume</span><span class="s2">))</span>
+<span class="s3"># volume.GetMute()</span>
+<span class="s3"># volume.GetMasterVolumeLevel()</span>
+<span class="s1">volRange </span><span class="s2">= </span><span class="s1">volume</span><span class="s2">.</span><span class="s1">GetVolumeRange</span><span class="s2">()</span>
+<span class="s1">minVol </span><span class="s2">= </span><span class="s1">volRange</span><span class="s2">[</span><span class="s4">0</span><span class="s2">]</span>
+<span class="s1">maxVol </span><span class="s2">= </span><span class="s1">volRange</span><span class="s2">[</span><span class="s4">1</span><span class="s2">]</span>
+<span class="s1">vol </span><span class="s2">= </span><span class="s4">0</span>
+<span class="s1">volBar </span><span class="s2">= </span><span class="s4">400</span>
+<span class="s1">volPer </span><span class="s2">= </span><span class="s4">0</span>
+<span class="s0">while True</span><span class="s2">:</span>
+    <span class="s1">success</span><span class="s2">, </span><span class="s1">img </span><span class="s2">= </span><span class="s1">cap</span><span class="s2">.</span><span class="s1">read</span><span class="s2">()</span>
+    <span class="s1">img </span><span class="s2">= </span><span class="s1">detector</span><span class="s2">.</span><span class="s1">findHands</span><span class="s2">(</span><span class="s1">img</span><span class="s2">)</span>
+    <span class="s1">lmList </span><span class="s2">= </span><span class="s1">detector</span><span class="s2">.</span><span class="s1">findPosition</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, </span><span class="s1">draw</span><span class="s2">=</span><span class="s0">False</span><span class="s2">)</span>
+    <span class="s0">if </span><span class="s1">len</span><span class="s2">(</span><span class="s1">lmList</span><span class="s2">) != </span><span class="s4">0</span><span class="s2">:</span>
+        <span class="s3"># print(lmList[4], lmList[8])</span>
+
+        <span class="s1">x1</span><span class="s2">, </span><span class="s1">y1 </span><span class="s2">= </span><span class="s1">lmList</span><span class="s2">[</span><span class="s4">4</span><span class="s2">][</span><span class="s4">1</span><span class="s2">], </span><span class="s1">lmList</span><span class="s2">[</span><span class="s4">4</span><span class="s2">][</span><span class="s4">2</span><span class="s2">]</span>
+        <span class="s1">x2</span><span class="s2">, </span><span class="s1">y2 </span><span class="s2">= </span><span class="s1">lmList</span><span class="s2">[</span><span class="s4">8</span><span class="s2">][</span><span class="s4">1</span><span class="s2">], </span><span class="s1">lmList</span><span class="s2">[</span><span class="s4">8</span><span class="s2">][</span><span class="s4">2</span><span class="s2">]</span>
+        <span class="s1">cx</span><span class="s2">, </span><span class="s1">cy </span><span class="s2">= (</span><span class="s1">x1 </span><span class="s2">+ </span><span class="s1">x2</span><span class="s2">) // </span><span class="s4">2</span><span class="s2">, (</span><span class="s1">y1 </span><span class="s2">+ </span><span class="s1">y2</span><span class="s2">) // </span><span class="s4">2</span>
+
+        <span class="s1">cv2</span><span class="s2">.</span><span class="s1">circle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s1">x1</span><span class="s2">, </span><span class="s1">y1</span><span class="s2">), </span><span class="s4">15</span><span class="s2">, (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">255</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FILLED</span><span class="s2">)</span>
+        <span class="s1">cv2</span><span class="s2">.</span><span class="s1">circle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s1">x2</span><span class="s2">, </span><span class="s1">y2</span><span class="s2">), </span><span class="s4">15</span><span class="s2">, (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">255</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FILLED</span><span class="s2">)</span>
+        <span class="s1">cv2</span><span class="s2">.</span><span class="s1">line</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s1">x1</span><span class="s2">, </span><span class="s1">y1</span><span class="s2">), (</span><span class="s1">x2</span><span class="s2">, </span><span class="s1">y2</span><span class="s2">), (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">255</span><span class="s2">), </span><span class="s4">3</span><span class="s2">)</span>
+        <span class="s1">cv2</span><span class="s2">.</span><span class="s1">circle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s1">cx</span><span class="s2">, </span><span class="s1">cy</span><span class="s2">), </span><span class="s4">15</span><span class="s2">, (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">255</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FILLED</span><span class="s2">)</span>
+
+        <span class="s1">length </span><span class="s2">= </span><span class="s1">math</span><span class="s2">.</span><span class="s1">hypot</span><span class="s2">(</span><span class="s1">x2 </span><span class="s2">- </span><span class="s1">x1</span><span class="s2">, </span><span class="s1">y2 </span><span class="s2">- </span><span class="s1">y1</span><span class="s2">)</span>
+        <span class="s3"># print(length)</span>
+
+        <span class="s3"># Hand range 50 - 300</span>
+        <span class="s3"># Volume Range -65 - 0</span>
+
+        <span class="s1">vol </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">interp</span><span class="s2">(</span><span class="s1">length</span><span class="s2">, [</span><span class="s4">50</span><span class="s2">, </span><span class="s4">300</span><span class="s2">], [</span><span class="s1">minVol</span><span class="s2">, </span><span class="s1">maxVol</span><span class="s2">])</span>
+        <span class="s1">volBar </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">interp</span><span class="s2">(</span><span class="s1">length</span><span class="s2">, [</span><span class="s4">50</span><span class="s2">, </span><span class="s4">300</span><span class="s2">], [</span><span class="s4">400</span><span class="s2">, </span><span class="s4">150</span><span class="s2">])</span>
+        <span class="s1">volPer </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">interp</span><span class="s2">(</span><span class="s1">length</span><span class="s2">, [</span><span class="s4">50</span><span class="s2">, </span><span class="s4">300</span><span class="s2">], [</span><span class="s4">0</span><span class="s2">, </span><span class="s4">100</span><span class="s2">])</span>
+        <span class="s1">print</span><span class="s2">(</span><span class="s1">int</span><span class="s2">(</span><span class="s1">length</span><span class="s2">), </span><span class="s1">vol</span><span class="s2">)</span>
+        <span class="s1">volume</span><span class="s2">.</span><span class="s1">SetMasterVolumeLevel</span><span class="s2">(</span><span class="s1">vol</span><span class="s2">, </span><span class="s0">None</span><span class="s2">)</span>
+
+        <span class="s0">if </span><span class="s1">length </span><span class="s2">&lt; </span><span class="s4">50</span><span class="s2">:</span>
+            <span class="s1">cv2</span><span class="s2">.</span><span class="s1">circle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s1">cx</span><span class="s2">, </span><span class="s1">cy</span><span class="s2">), </span><span class="s4">15</span><span class="s2">, (</span><span class="s4">0</span><span class="s2">, </span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FILLED</span><span class="s2">)</span>
+
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">rectangle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s4">50</span><span class="s2">, </span><span class="s4">150</span><span class="s2">), (</span><span class="s4">85</span><span class="s2">, </span><span class="s4">400</span><span class="s2">), (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">0</span><span class="s2">), </span><span class="s4">3</span><span class="s2">)</span>
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">rectangle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, (</span><span class="s4">50</span><span class="s2">, </span><span class="s1">int</span><span class="s2">(</span><span class="s1">volBar</span><span class="s2">)), (</span><span class="s4">85</span><span class="s2">, </span><span class="s4">400</span><span class="s2">), (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">0</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FILLED</span><span class="s2">)</span>
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">putText</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, </span><span class="s5">f'</span><span class="s0">{</span><span class="s1">int</span><span class="s2">(</span><span class="s1">volPer</span><span class="s2">)</span><span class="s0">} </span><span class="s5">%'</span><span class="s2">, (</span><span class="s4">40</span><span class="s2">, </span><span class="s4">450</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FONT_HERSHEY_COMPLEX</span><span class="s2">,</span>
+                <span class="s4">1</span><span class="s2">, (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">0</span><span class="s2">), </span><span class="s4">3</span><span class="s2">)</span>
+
+
+    <span class="s1">cTime </span><span class="s2">= </span><span class="s1">time</span><span class="s2">.</span><span class="s1">time</span><span class="s2">()</span>
+    <span class="s1">fps </span><span class="s2">= </span><span class="s4">1 </span><span class="s2">/ (</span><span class="s1">cTime </span><span class="s2">- </span><span class="s1">pTime</span><span class="s2">)</span>
+    <span class="s1">pTime </span><span class="s2">= </span><span class="s1">cTime</span>
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">putText</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, </span><span class="s5">f'FPS: </span><span class="s0">{</span><span class="s1">int</span><span class="s2">(</span><span class="s1">fps</span><span class="s2">)</span><span class="s0">}</span><span class="s5">'</span><span class="s2">, (</span><span class="s4">40</span><span class="s2">, </span><span class="s4">50</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FONT_HERSHEY_COMPLEX</span><span class="s2">,</span>
+                <span class="s4">1</span><span class="s2">, (</span><span class="s4">255</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">0</span><span class="s2">), </span><span class="s4">3</span><span class="s2">)</span>
+
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">imshow</span><span class="s2">(</span><span class="s5">&quot;Img&quot;</span><span class="s2">, </span><span class="s1">img</span><span class="s2">)</span>
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">waitKey</span><span class="s2">(</span><span class="s4">1</span><span class="s2">)</span>
+</pre>
+</body>
+</html>

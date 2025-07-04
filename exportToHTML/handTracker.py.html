@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>handTracker.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #7a7e85;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+handTracker.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">cv2</span>
+<span class="s0">import </span><span class="s1">mediapipe </span><span class="s0">as </span><span class="s1">mp</span>
+<span class="s0">import </span><span class="s1">time</span>
+
+<span class="s1">cap </span><span class="s2">= </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">VideoCapture</span><span class="s2">(</span><span class="s3">0</span><span class="s2">)</span>
+
+<span class="s1">mpHands </span><span class="s2">= </span><span class="s1">mp</span><span class="s2">.</span><span class="s1">solutions</span><span class="s2">.</span><span class="s1">hands</span>
+<span class="s1">hands </span><span class="s2">= </span><span class="s1">mpHands</span><span class="s2">.</span><span class="s1">Hands</span><span class="s2">()</span>
+<span class="s1">mpDraw </span><span class="s2">= </span><span class="s1">mp</span><span class="s2">.</span><span class="s1">solutions</span><span class="s2">.</span><span class="s1">drawing_utils</span>
+
+<span class="s1">pTime </span><span class="s2">= </span><span class="s3">0</span>
+<span class="s1">cTime </span><span class="s2">= </span><span class="s3">0</span>
+
+
+<span class="s0">while True</span><span class="s2">:</span>
+    <span class="s1">success</span><span class="s2">, </span><span class="s1">img </span><span class="s2">= </span><span class="s1">cap</span><span class="s2">.</span><span class="s1">read</span><span class="s2">()</span>
+    <span class="s1">imgRGB </span><span class="s2">= </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">cvtColor</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">COLOR_BGR2RGB</span><span class="s2">)</span>
+    <span class="s1">results </span><span class="s2">= </span><span class="s1">hands</span><span class="s2">.</span><span class="s1">process</span><span class="s2">(</span><span class="s1">imgRGB</span><span class="s2">)</span>
+    <span class="s4"># print(results.multi_hand_landmarks)</span>
+
+    <span class="s0">if </span><span class="s1">results</span><span class="s2">.</span><span class="s1">multi_hand_landmarks</span><span class="s2">:</span>
+        <span class="s0">for </span><span class="s1">handLms </span><span class="s0">in </span><span class="s1">results</span><span class="s2">.</span><span class="s1">multi_hand_landmarks</span><span class="s2">:</span>
+            <span class="s0">for </span><span class="s1">id</span><span class="s2">, </span><span class="s1">lm </span><span class="s0">in </span><span class="s1">enumerate</span><span class="s2">(</span><span class="s1">handLms</span><span class="s2">.</span><span class="s1">landmark</span><span class="s2">):</span>
+                <span class="s4"># print(id,lm)</span>
+                <span class="s1">h</span><span class="s2">,</span><span class="s1">w</span><span class="s2">,</span><span class="s1">c </span><span class="s2">= </span><span class="s1">img</span><span class="s2">.</span><span class="s1">shape</span>
+                <span class="s1">cx</span><span class="s2">,</span><span class="s1">cy </span><span class="s2">= </span><span class="s1">int</span><span class="s2">(</span><span class="s1">lm</span><span class="s2">.</span><span class="s1">x</span><span class="s2">*</span><span class="s1">w</span><span class="s2">),</span><span class="s1">int</span><span class="s2">(</span><span class="s1">lm</span><span class="s2">.</span><span class="s1">y</span><span class="s2">*</span><span class="s1">h</span><span class="s2">)</span>
+                <span class="s1">print</span><span class="s2">(</span><span class="s1">id</span><span class="s2">,</span><span class="s1">cx</span><span class="s2">,</span><span class="s1">cy</span><span class="s2">)</span>
+                <span class="s0">if </span><span class="s1">id </span><span class="s2">== </span><span class="s3">0</span><span class="s2">:</span>
+                    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">circle</span><span class="s2">(</span><span class="s1">img</span><span class="s2">,(</span><span class="s1">cx</span><span class="s2">,</span><span class="s1">cy</span><span class="s2">),</span><span class="s3">15</span><span class="s2">,(</span><span class="s3">255</span><span class="s2">,</span><span class="s3">0</span><span class="s2">,</span><span class="s3">0</span><span class="s2">),</span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FILLED</span><span class="s2">)</span>
+
+
+
+            <span class="s1">mpDraw</span><span class="s2">.</span><span class="s1">draw_landmarks</span><span class="s2">(</span><span class="s1">img</span><span class="s2">, </span><span class="s1">handLms</span><span class="s2">, </span><span class="s1">mpHands</span><span class="s2">.</span><span class="s1">HAND_CONNECTIONS</span><span class="s2">)</span>
+
+    <span class="s1">cTime </span><span class="s2">= </span><span class="s1">time</span><span class="s2">.</span><span class="s1">time</span><span class="s2">()</span>
+    <span class="s1">fps </span><span class="s2">= </span><span class="s3">1</span><span class="s2">/(</span><span class="s1">cTime</span><span class="s2">-</span><span class="s1">pTime</span><span class="s2">)</span>
+    <span class="s1">pTime </span><span class="s2">= </span><span class="s1">cTime</span>
+
+
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">putText</span><span class="s2">(</span><span class="s1">img </span><span class="s2">, </span><span class="s1">str</span><span class="s2">(</span><span class="s1">int</span><span class="s2">(</span><span class="s1">fps</span><span class="s2">)),(</span><span class="s3">10</span><span class="s2">,</span><span class="s3">70</span><span class="s2">), </span><span class="s1">cv2</span><span class="s2">.</span><span class="s1">FONT_HERSHEY_PLAIN</span><span class="s2">, </span><span class="s3">3</span><span class="s2">,</span>
+                <span class="s2">(</span><span class="s3">255</span><span class="s2">,</span><span class="s3">0</span><span class="s2">,</span><span class="s3">255</span><span class="s2">), </span><span class="s3">3</span><span class="s2">)</span>
+
+
+
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">imshow</span><span class="s2">(</span><span class="s5">'Video'</span><span class="s2">, </span><span class="s1">img</span><span class="s2">)</span>
+    <span class="s1">cv2</span><span class="s2">.</span><span class="s1">waitKey</span><span class="s2">(</span><span class="s3">1</span><span class="s2">)</span></pre>
+</body>
+</html>
